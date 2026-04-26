@@ -1,0 +1,22 @@
+body {
+	font-family: "Arial";
+}
+input {
+	font-size: 1.2em;
+	height: 40px;
+	width: 200px;
+}
+table, th, td {
+	border: 1px solid black;
+}
+table {
+	width: 100%;
+	border-collapse: collapse;
+}
+th, td {
+	padding: 8px;
+	text-align: left;
+}
+a {
+	margin-right: 10px;
+}
