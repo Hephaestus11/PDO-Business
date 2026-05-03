@@ -1,13 +1,53 @@
 <?php  
 
-// ---- Account Functions ----
+require_once 'dbConfig.php';
 
-function insertAccount($pdo, $username, $email, $password) {
-	$sql = "INSERT INTO accounts (username, email, password) VALUES(?,?,?)";
+// ---- User Functions (Login/Register) ----
+
+// check if username exists, if not insert new account
+function insertNewUser($pdo, $username, $email, $password) {
+	$checkUserSql = "SELECT * FROM accounts WHERE username = ?";
+	$checkUserSqlStmt = $pdo->prepare($checkUserSql);
+	$checkUserSqlStmt->execute([$username]);
+
+	if ($checkUserSqlStmt->rowCount() == 0) {
+		$sql = "INSERT INTO accounts (username, email, password) VALUES(?,?,?)";
+		$stmt = $pdo->prepare($sql);
+		$executeQuery = $stmt->execute([$username, $email, $password]);
+
+		if ($executeQuery) {
+			$_SESSION['message'] = "User successfully registered";
+			return true;
+		} else {
+			$_SESSION['message'] = "An error occured from the query";
+		}
+	} else {
+		$_SESSION['message'] = "User already exists";
+	}
+}
+
+// verify username and password for login
+function loginUser($pdo, $username, $password) {
+	$sql = "SELECT * FROM accounts WHERE username=?";
 	$stmt = $pdo->prepare($sql);
-	$executeQuery = $stmt->execute([$username, $email, $password]);
-	if ($executeQuery) {
-		return true;
+	$stmt->execute([$username]); 
+
+	if ($stmt->rowCount() == 1) {
+		$userInfoRow = $stmt->fetch();
+		$usernameFromDB = $userInfoRow['username']; 
+		$passwordFromDB = $userInfoRow['password'];
+
+		if ($password == $passwordFromDB) {
+			$_SESSION['username'] = $usernameFromDB;
+			$_SESSION['message'] = "Login successful!";
+			return true;
+		} else {
+			$_SESSION['message'] = "Password is invalid";
+		}
+	}
+
+	if ($stmt->rowCount() == 0) {
+		$_SESSION['message'] = "Username doesn't exist. Please register first";
 	}
 }
 
@@ -29,10 +69,16 @@ function getAccountByID($pdo, $account_id) {
 	}
 }
 
-function updateAccount($pdo, $username, $email, $account_id) {
-	$sql = "UPDATE accounts SET username = ?, email = ? WHERE account_id = ?";
+
+
+// ---- Account Functions (Update/Delete) ----
+
+
+// update with updated_by tracking
+function updateAccount($pdo, $username, $email, $account_id, $updated_by) {
+	$sql = "UPDATE accounts SET username = ?, email = ?, updated_by = ? WHERE account_id = ?";
 	$stmt = $pdo->prepare($sql);
-	$executeQuery = $stmt->execute([$username, $email, $account_id]);
+	$executeQuery = $stmt->execute([$username, $email, $updated_by, $account_id]);
 	if ($executeQuery) {
 		return true;
 	}
@@ -57,10 +103,11 @@ function deleteAccount($pdo, $account_id) {
 
 // ---- Guitar Functions ----
 
-function insertGuitar($pdo, $guitar_name, $guitar_type, $quantity, $price) {
-	$sql = "INSERT INTO guitars (guitar_name, guitar_type, quantity, price) VALUES(?,?,?,?)";
+// insert with added_by tracking
+function insertGuitar($pdo, $guitar_name, $guitar_type, $quantity, $price, $added_by) {
+	$sql = "INSERT INTO guitars (guitar_name, guitar_type, quantity, price, added_by) VALUES(?,?,?,?,?)";
 	$stmt = $pdo->prepare($sql);
-	$executeQuery = $stmt->execute([$guitar_name, $guitar_type, $quantity, $price]);
+	$executeQuery = $stmt->execute([$guitar_name, $guitar_type, $quantity, $price, $added_by]);
 	if ($executeQuery) {
 		return true;
 	}
@@ -84,10 +131,11 @@ function getGuitarByID($pdo, $guitar_id) {
 	}
 }
 
-function updateGuitar($pdo, $guitar_name, $guitar_type, $quantity, $price, $guitar_id) {
-	$sql = "UPDATE guitars SET guitar_name = ?, guitar_type = ?, quantity = ?, price = ? WHERE guitar_id = ?";
+// update with updated_by tracking
+function updateGuitar($pdo, $guitar_name, $guitar_type, $quantity, $price, $guitar_id, $updated_by) {
+	$sql = "UPDATE guitars SET guitar_name = ?, guitar_type = ?, quantity = ?, price = ?, updated_by = ? WHERE guitar_id = ?";
 	$stmt = $pdo->prepare($sql);
-	$executeQuery = $stmt->execute([$guitar_name, $guitar_type, $quantity, $price, $guitar_id]);
+	$executeQuery = $stmt->execute([$guitar_name, $guitar_type, $quantity, $price, $updated_by, $guitar_id]);
 	if ($executeQuery) {
 		return true;
 	}
@@ -105,10 +153,11 @@ function deleteGuitar($pdo, $guitar_id) {
 
 // ---- Other Product Functions ----
 
-function insertOtherProduct($pdo, $product_name, $category, $quantity, $price) {
-	$sql = "INSERT INTO other_products (product_name, category, quantity, price) VALUES(?,?,?,?)";
+// insert with added_by tracking
+function insertOtherProduct($pdo, $product_name, $category, $quantity, $price, $added_by) {
+	$sql = "INSERT INTO other_products (product_name, category, quantity, price, added_by) VALUES(?,?,?,?,?)";
 	$stmt = $pdo->prepare($sql);
-	$executeQuery = $stmt->execute([$product_name, $category, $quantity, $price]);
+	$executeQuery = $stmt->execute([$product_name, $category, $quantity, $price, $added_by]);
 	if ($executeQuery) {
 		return true;
 	}
@@ -132,10 +181,11 @@ function getOtherProductByID($pdo, $product_id) {
 	}
 }
 
-function updateOtherProduct($pdo, $product_name, $category, $quantity, $price, $product_id) {
-	$sql = "UPDATE other_products SET product_name = ?, category = ?, quantity = ?, price = ? WHERE product_id = ?";
+// update with updated_by tracking
+function updateOtherProduct($pdo, $product_name, $category, $quantity, $price, $product_id, $updated_by) {
+	$sql = "UPDATE other_products SET product_name = ?, category = ?, quantity = ?, price = ?, updated_by = ? WHERE product_id = ?";
 	$stmt = $pdo->prepare($sql);
-	$executeQuery = $stmt->execute([$product_name, $category, $quantity, $price, $product_id]);
+	$executeQuery = $stmt->execute([$product_name, $category, $quantity, $price, $updated_by, $product_id]);
 	if ($executeQuery) {
 		return true;
 	}
@@ -153,10 +203,11 @@ function deleteOtherProduct($pdo, $product_id) {
 
 // ---- Shopping Cart Functions ----
 
-function insertCartItem($pdo, $account_id, $item_name, $item_type, $quantity, $price) {
-	$sql = "INSERT INTO shopping_cart (account_id, item_name, item_type, quantity, price) VALUES(?,?,?,?,?)";
+// insert with added_by tracking
+function insertCartItem($pdo, $account_id, $item_name, $item_type, $quantity, $price, $added_by) {
+	$sql = "INSERT INTO shopping_cart (account_id, item_name, item_type, quantity, price, added_by) VALUES(?,?,?,?,?,?)";
 	$stmt = $pdo->prepare($sql);
-	$executeQuery = $stmt->execute([$account_id, $item_name, $item_type, $quantity, $price]);
+	$executeQuery = $stmt->execute([$account_id, $item_name, $item_type, $quantity, $price, $added_by]);
 	if ($executeQuery) {
 		return true;
 	}
@@ -169,6 +220,8 @@ function getCartByAccount($pdo, $account_id) {
 				shopping_cart.item_type AS item_type,
 				shopping_cart.quantity AS quantity,
 				shopping_cart.price AS price,
+				shopping_cart.added_by AS added_by,
+				shopping_cart.updated_by AS updated_by,
 				shopping_cart.date_added AS date_added,
 				accounts.username AS username
 			FROM shopping_cart
@@ -188,6 +241,8 @@ function getCartItemByID($pdo, $cart_id) {
 				shopping_cart.item_type AS item_type,
 				shopping_cart.quantity AS quantity,
 				shopping_cart.price AS price,
+				shopping_cart.added_by AS added_by,
+				shopping_cart.updated_by AS updated_by,
 				shopping_cart.date_added AS date_added,
 				accounts.username AS username
 			FROM shopping_cart
@@ -200,10 +255,11 @@ function getCartItemByID($pdo, $cart_id) {
 	}
 }
 
-function updateCartItem($pdo, $item_name, $item_type, $quantity, $price, $cart_id) {
-	$sql = "UPDATE shopping_cart SET item_name = ?, item_type = ?, quantity = ?, price = ? WHERE cart_id = ?";
+// update with updated_by tracking
+function updateCartItem($pdo, $item_name, $item_type, $quantity, $price, $cart_id, $updated_by) {
+	$sql = "UPDATE shopping_cart SET item_name = ?, item_type = ?, quantity = ?, price = ?, updated_by = ? WHERE cart_id = ?";
 	$stmt = $pdo->prepare($sql);
-	$executeQuery = $stmt->execute([$item_name, $item_type, $quantity, $price, $cart_id]);
+	$executeQuery = $stmt->execute([$item_name, $item_type, $quantity, $price, $updated_by, $cart_id]);
 	if ($executeQuery) {
 		return true;
 	}

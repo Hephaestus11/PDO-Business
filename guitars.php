@@ -1,21 +1,32 @@
-<?php require_once 'core/dbConfig.php'; ?>
-<?php require_once 'core/models.php'; ?>
+<?php 
+require_once 'core/models.php'; 
+require_once 'core/handleForms.php'; 
+
+if (!isset($_SESSION['username'])) {
+	header("Location: login.php");
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Guitars</title>
+	<title>Guitars - Guitar Store</title>
 	<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-	<h1>Guitar Store - Manage Guitars</h1>
-	<p>
+	<!-- navigation -->
+	<div class="nav">
+		<span>Logged in as: <strong><?php echo $_SESSION['username']; ?></strong></span>
 		<a href="index.php">Accounts</a>
 		<a href="guitars.php">Guitars</a>
 		<a href="otherproducts.php">Other Products</a>
-	</p>
+		<a href="core/handleForms.php?logoutAUser=1">Logout</a>
+	</div>
 
+	<h1>Guitar Store - Manage Guitars</h1>
+
+	<!-- add guitar form -->
 	<h2>Add New Guitar</h2>
 	<form action="core/handleForms.php" method="POST">
 		<p>
@@ -39,6 +50,7 @@
 		</p>
 	</form>
 
+	<!-- guitar inventory table -->
 	<h2>Guitar Inventory</h2>
 	<table>
 		<tr>
@@ -47,6 +59,8 @@
 			<th>Type</th>
 			<th>Quantity</th>
 			<th>Price</th>
+			<th>Added By</th>
+			<th>Updated By</th>
 			<th>Date Added</th>
 			<th>Action</th>
 		</tr>
@@ -58,6 +72,8 @@
 			<td><?php echo $row['guitar_type']; ?></td>
 			<td><?php echo $row['quantity']; ?></td>
 			<td><?php echo $row['price']; ?></td>
+			<td><?php echo $row['added_by']; ?></td>
+			<td><?php echo $row['updated_by']; ?></td>
 			<td><?php echo $row['date_added']; ?></td>
 			<td>
 				<a href="editguitar.php?guitar_id=<?php echo $row['guitar_id']; ?>">Edit</a>

@@ -1,0 +1,113 @@
+How did you implement the USER ENTITY to the system you created? 
+Give THE COMPLETE STEPS BELOW with some screenshots of the steps you took.
+
+ANSWER:
+
+I implemented the USER ENTITY by merging it into the existing accounts table. 
+Instead of creating a separate users table, I added the login/register 
+functionality directly into the accounts table so it handles both 
+user authentication and storing personal information. Below are the steps:
+
+
+STEP 1: Updated the accounts table in data.sql to include a password column 
+for login, and added_by/updated_by columns to track who added or updated 
+each record.
+
+    CREATE TABLE accounts (
+        account_id INT AUTO_INCREMENT PRIMARY KEY,
+        username VARCHAR(50),
+        email VARCHAR(100),
+        password VARCHAR(255),
+        added_by VARCHAR(50),
+        updated_by VARCHAR(50),
+        date_registered TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+(Screenshot: Paste screenshot of the SQL code in phpMyAdmin here)
+
+
+STEP 2: Added added_by and updated_by columns to the guitars, other_products, 
+and shopping_cart tables so we can track which user added or last updated 
+each record.
+
+(Screenshot: Paste screenshot of the updated table structures in phpMyAdmin here)
+
+
+STEP 3: Added session_start() in dbConfig.php to enable PHP sessions for 
+tracking logged-in users.
+
+(Screenshot: Paste screenshot of dbConfig.php code here)
+
+
+STEP 4: Created user functions in models.php:
+- insertNewUser() - checks if username already exists, if not, inserts 
+  new account with username, email, and hashed password into the accounts table.
+- loginUser() - verifies username and password from the accounts table 
+  and sets the session.
+- getAllAccounts() and getAccountByID() - fetches account records.
+
+(Screenshot: Paste screenshot of the user functions in models.php here)
+
+
+STEP 5: Updated all insert and update functions in models.php to accept 
+added_by and updated_by parameters. For example:
+
+    function insertGuitar($pdo, $guitar_name, $guitar_type, $quantity, $price, $added_by)
+
+    function updateGuitar($pdo, $guitar_name, $guitar_type, $quantity, $price, $guitar_id, $updated_by)
+
+This way, every time a record is inserted or updated, we store the username 
+of the logged-in user who performed that action.
+
+(Screenshot: Paste screenshot of the updated insert/update functions here)
+
+
+STEP 6: Created register.php and login.php pages for user registration 
+and login. The register page collects username, email, and password. 
+The password is hashed using sha1() before storing in the database.
+
+(Screenshot: Paste screenshot of the register and login pages in the browser here)
+
+
+STEP 7: Added form handlers in handleForms.php for register, login, 
+and logout. The register handler passes the email along with username 
+and hashed password. The login handler verifies credentials and creates 
+a session. The logout handler destroys the session.
+
+(Screenshot: Paste screenshot of the register/login handlers in handleForms.php here)
+
+
+STEP 8: Updated all existing form handlers to pass $_SESSION['username'] 
+as added_by when inserting records, and as updated_by when updating records. 
+For example:
+
+    insertGuitar($pdo, ..., $_SESSION['username']);
+    updateGuitar($pdo, ..., $_SESSION['username']);
+
+(Screenshot: Paste screenshot of the updated handlers here)
+
+
+STEP 9: Added session protection to all pages. If a user is not logged in, 
+they get redirected to login.php:
+
+    if (!isset($_SESSION['username'])) {
+        header("Location: login.php");
+    }
+
+(Screenshot: Paste screenshot showing the redirect code at the top of a page here)
+
+
+STEP 10: Updated all tables and cards in the pages to display the 
+"Added By" and "Updated By" columns so users can see who added 
+and who last updated each record.
+
+(Screenshot: Paste screenshot of the guitar table showing Added By and Updated By columns here)
+
+
+SUMMARY:
+The USER ENTITY was implemented by using the accounts table for both 
+registration/login and storing user information. Every page is protected 
+by session checking. The added_by and updated_by columns in all tables 
+track which logged-in user performed each action. This way, we always 
+know who added and who last updated a certain guitar record, other product 
+record, or shopping cart item.

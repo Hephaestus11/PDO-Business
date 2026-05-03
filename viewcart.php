@@ -1,18 +1,33 @@
-<?php require_once 'core/dbConfig.php'; ?>
-<?php require_once 'core/models.php'; ?>
+<?php 
+require_once 'core/models.php'; 
+require_once 'core/handleForms.php'; 
+
+if (!isset($_SESSION['username'])) {
+	header("Location: login.php");
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Shopping Cart</title>
+	<title>Shopping Cart - Guitar Store</title>
 	<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-	<a href="index.php">Return to Accounts</a>
+	<!-- navigation -->
+	<div class="nav">
+		<span>Logged in as: <strong><?php echo $_SESSION['username']; ?></strong></span>
+		<a href="index.php">Accounts</a>
+		<a href="guitars.php">Guitars</a>
+		<a href="otherproducts.php">Other Products</a>
+		<a href="core/handleForms.php?logoutAUser=1">Logout</a>
+	</div>
+
 	<?php $getAccountByID = getAccountByID($pdo, $_GET['account_id']); ?>
 	<h1>Shopping Cart of: <?php echo $getAccountByID['username']; ?></h1>
 
+	<!-- add cart item form -->
 	<h2>Add Item to Cart</h2>
 	<form action="core/handleForms.php?account_id=<?php echo $_GET['account_id']; ?>" method="POST">
 		<p>
@@ -36,6 +51,7 @@
 		</p>
 	</form>
 
+	<!-- cart items table -->
 	<h2>Cart Items</h2>
 	<table>
 		<tr>
@@ -45,6 +61,8 @@
 			<th>Quantity</th>
 			<th>Price</th>
 			<th>Owner</th>
+			<th>Added By</th>
+			<th>Updated By</th>
 			<th>Date Added</th>
 			<th>Action</th>
 		</tr>
@@ -57,6 +75,8 @@
 			<td><?php echo $row['quantity']; ?></td>
 			<td><?php echo $row['price']; ?></td>
 			<td><?php echo $row['username']; ?></td>
+			<td><?php echo $row['added_by']; ?></td>
+			<td><?php echo $row['updated_by']; ?></td>
 			<td><?php echo $row['date_added']; ?></td>
 			<td>
 				<a href="editcartitem.php?cart_id=<?php echo $row['cart_id']; ?>&account_id=<?php echo $_GET['account_id']; ?>">Edit</a>

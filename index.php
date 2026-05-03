@@ -1,5 +1,12 @@
-<?php require_once 'core/dbConfig.php'; ?>
-<?php require_once 'core/models.php'; ?>
+<?php 
+require_once 'core/models.php'; 
+require_once 'core/handleForms.php'; 
+
+// redirect to login if no session
+if (!isset($_SESSION['username'])) {
+	header("Location: login.php");
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,41 +16,33 @@
 	<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-	<h1>Guitar Store - Account Registration</h1>
-	<p>
+	<!-- navigation -->
+	<div class="nav">
+		<span>Logged in as: <strong><?php echo $_SESSION['username']; ?></strong></span>
 		<a href="index.php">Accounts</a>
 		<a href="guitars.php">Guitars</a>
 		<a href="otherproducts.php">Other Products</a>
-	</p>
+		<a href="core/handleForms.php?logoutAUser=1">Logout</a>
+	</div>
 
-	<h2>Register New Account</h2>
-	<form action="core/handleForms.php" method="POST">
-		<p>
-			<label>Username</label>
-			<input type="text" name="username">
-		</p>
-		<p>
-			<label>Email</label>
-			<input type="text" name="email">
-		</p>
-		<p>
-			<label>Password</label>
-			<input type="password" name="password">
-		</p>
-		<p>
-			<input type="submit" name="insertAccountBtn" value="Register">
-		</p>
-	</form>
+	<!-- session messages -->
+	<?php if (isset($_SESSION['message'])) { ?>
+		<p class="message"><?php echo $_SESSION['message']; ?></p>
+	<?php } unset($_SESSION['message']); ?>
 
+	<h1>Guitar Store - Accounts</h1>
+
+	<!-- list of all accounts -->
 	<h2>Registered Accounts</h2>
 	<?php $getAllAccounts = getAllAccounts($pdo); ?>
 	<?php foreach ($getAllAccounts as $row) { ?>
-	<div class="container" style="border-style: solid; width: 50%; height: 250px; margin-top: 20px; padding: 10px;">
+	<div class="card">
 		<h3>Username: <?php echo $row['username']; ?></h3>
 		<h3>Email: <?php echo $row['email']; ?></h3>
 		<h3>Date Registered: <?php echo $row['date_registered']; ?></h3>
+		<p>Added by: <?php echo $row['added_by']; ?> | Updated by: <?php echo $row['updated_by']; ?></p>
 
-		<div style="float: right; margin-right: 20px;">
+		<div class="actions">
 			<a href="viewcart.php?account_id=<?php echo $row['account_id']; ?>">View Cart</a>
 			<a href="editaccount.php?account_id=<?php echo $row['account_id']; ?>">Edit</a>
 			<a href="deleteaccount.php?account_id=<?php echo $row['account_id']; ?>">Delete</a>

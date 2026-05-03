@@ -2,6 +2,7 @@
 require_once 'core/models.php'; 
 require_once 'core/handleForms.php'; 
 
+// redirect to login if no session
 if (!isset($_SESSION['username'])) {
 	header("Location: login.php");
 }
@@ -11,10 +12,11 @@ if (!isset($_SESSION['username'])) {
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Edit Account - Guitar Store</title>
+	<title>View Account - Guitar Store</title>
 	<link rel="stylesheet" href="styles.css">
 </head>
 <body>
+	<!-- navigation -->
 	<div class="nav">
 		<span>Logged in as: <strong><?php echo $_SESSION['username']; ?></strong></span>
 		<a href="index.php">Accounts</a>
@@ -23,21 +25,12 @@ if (!isset($_SESSION['username'])) {
 		<a href="core/handleForms.php?logoutAUser=1">Logout</a>
 	</div>
 
-	<a href="index.php">Return to Accounts</a>
 	<?php $getAccountByID = getAccountByID($pdo, $_GET['account_id']); ?>
-	<h1>Edit Account</h1>
-	<form action="core/handleForms.php?account_id=<?php echo $_GET['account_id']; ?>" method="POST">
-		<p>
-			<label>Username</label>
-			<input type="text" name="username" value="<?php echo $getAccountByID['username']; ?>">
-		</p>
-		<p>
-			<label>Email</label>
-			<input type="text" name="email" value="<?php echo $getAccountByID['email']; ?>">
-		</p>
-		<p>
-			<input type="submit" name="editAccountBtn" value="Update">
-		</p>
-	</form>
+	<h1>Account Details</h1>
+	<div class="card">
+		<h3>Username: <?php echo $getAccountByID['username']; ?></h3>
+		<h3>Email: <?php echo $getAccountByID['email']; ?></h3>
+		<h3>Date Registered: <?php echo $getAccountByID['date_registered']; ?></h3>
+	</div>
 </body>
 </html>
