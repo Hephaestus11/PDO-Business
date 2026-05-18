@@ -21,6 +21,8 @@ if (!isset($_SESSION['username'])) {
 		<a href="index.php">Accounts</a>
 		<a href="guitars.php">Guitars</a>
 		<a href="otherproducts.php">Other Products</a>
+		<a href="activitylog.php">Activity Logs</a>
+		<a href="search.php">Search</a>
 		<a href="core/handleForms.php?logoutAUser=1">Logout</a>
 	</div>
 
@@ -32,48 +34,80 @@ if (!isset($_SESSION['username'])) {
 	<form action="core/handleForms.php?account_id=<?php echo $_GET['account_id']; ?>" method="POST">
 		<p>
 			<label>Item Name</label>
-			<input type="text" name="itemName">
+			<input type="text" name="itemName" required>
 		</p>
 		<p>
 			<label>Item Type</label>
-			<input type="text" name="itemType" placeholder="Guitar, Capo, Strings...">
+			<input type="text" name="itemType" placeholder="Guitar, Capo, Strings..." required>
 		</p>
 		<p>
 			<label>Quantity</label>
-			<input type="number" name="quantity">
+			<input type="number" name="quantity" id="quantityInput" required oninput="calculateTotal()">
 		</p>
 		<p>
-			<label>Price</label>
-			<input type="number" name="price" step="0.01">
+			<label>Unit Price</label>
+			<input type="number" name="price" id="priceInput" step="0.01" required oninput="calculateTotal()">
+		</p>
+		<p>
+			<strong>Total Price: </strong> <span id="totalPriceDisplay">0.00</span>
 		</p>
 		<p>
 			<input type="submit" name="insertCartItemBtn" value="Add to Cart">
 		</p>
 	</form>
 
+	<script>
+		function calculateTotal() {
+			let qty = document.getElementById('quantityInput').value;
+			let price = document.getElementById('priceInput').value;
+			let total = 0;
+			if (qty && price) {
+				total = parseFloat(qty) * parseFloat(price);
+			}
+			document.getElementById('totalPriceDisplay').innerText = total.toFixed(2);
+		}
+	</script>
+
 	<!-- cart items table -->
 	<h2>Cart Items</h2>
+
+	<form action="viewcart.php" method="GET" style="margin-bottom: 20px;">
+		<input type="hidden" name="account_id" value="<?php echo $_GET['account_id']; ?>">
+		<input type="text" name="searchQuery" placeholder="Search cart items...">
+		<input type="submit" value="Search">
+	</form>
+
 	<table>
 		<tr>
 			<th>Cart ID</th>
 			<th>Item Name</th>
 			<th>Item Type</th>
 			<th>Quantity</th>
-			<th>Price</th>
+			<th>Unit Price</th>
+			<th>Total Price</th>
 			<th>Owner</th>
 			<th>Added By</th>
 			<th>Updated By</th>
 			<th>Date Added</th>
 			<th>Action</th>
 		</tr>
-		<?php $getCartByAccount = getCartByAccount($pdo, $_GET['account_id']); ?>
-		<?php foreach ($getCartByAccount as $row) { ?>
+		<?php 
+		if (isset($_GET['searchQuery'])) {
+			$getCartByAccount = searchCartItems($pdo, $_GET['account_id'], $_GET['searchQuery']);
+		} else {
+			$getCartByAccount = getCartByAccount($pdo, $_GET['account_id']); 
+		}
+		?>
+		<?php foreach ($getCartByAccount as $row) { 
+			$totalPrice = $row['quantity'] * $row['price'];
+		?>
 		<tr>
 			<td><?php echo $row['cart_id']; ?></td>
 			<td><?php echo $row['item_name']; ?></td>
 			<td><?php echo $row['item_type']; ?></td>
 			<td><?php echo $row['quantity']; ?></td>
 			<td><?php echo $row['price']; ?></td>
+			<td><strong><?php echo number_format($totalPrice, 2); ?></strong></td>
 			<td><?php echo $row['username']; ?></td>
 			<td><?php echo $row['added_by']; ?></td>
 			<td><?php echo $row['updated_by']; ?></td>

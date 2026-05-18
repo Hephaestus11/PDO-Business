@@ -22,6 +22,8 @@ if (!isset($_SESSION['username'])) {
 		<a href="index.php">Accounts</a>
 		<a href="guitars.php">Guitars</a>
 		<a href="otherproducts.php">Other Products</a>
+		<a href="activitylog.php">Activity Logs</a>
+		<a href="search.php">Search</a>
 		<a href="core/handleForms.php?logoutAUser=1">Logout</a>
 	</div>
 

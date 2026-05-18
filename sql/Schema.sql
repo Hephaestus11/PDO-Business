@@ -46,6 +46,16 @@ CREATE TABLE shopping_cart (
     date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Activity logs table
+CREATE TABLE activity_logs (
+    activity_id INT AUTO_INCREMENT PRIMARY KEY,
+    operation VARCHAR(255),
+    location_name VARCHAR(50),
+    username VARCHAR(50),
+    date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
 -- Sample data for guitars
 INSERT INTO guitars (guitar_name, guitar_type, quantity, price, added_by) VALUES
 ('Yamaha F315', 'Acoustic', 10, 7500.00, 'admin'),

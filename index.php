@@ -22,6 +22,8 @@ if (!isset($_SESSION['username'])) {
 		<a href="index.php">Accounts</a>
 		<a href="guitars.php">Guitars</a>
 		<a href="otherproducts.php">Other Products</a>
+		<a href="activitylog.php">Activity Logs</a>
+		<a href="search.php">Search</a>
 		<a href="core/handleForms.php?logoutAUser=1">Logout</a>
 	</div>
 
@@ -34,7 +36,19 @@ if (!isset($_SESSION['username'])) {
 
 	<!-- list of all accounts -->
 	<h2>Registered Accounts</h2>
-	<?php $getAllAccounts = getAllAccounts($pdo); ?>
+
+	<form action="index.php" method="GET" style="margin-bottom: 20px;">
+		<input type="text" name="searchQuery" placeholder="Search accounts...">
+		<input type="submit" value="Search">
+	</form>
+
+	<?php 
+	if (isset($_GET['searchQuery'])) {
+		$getAllAccounts = searchAccounts($pdo, $_GET['searchQuery']);
+	} else {
+		$getAllAccounts = getAllAccounts($pdo); 
+	}
+	?>
 	<?php foreach ($getAllAccounts as $row) { ?>
 	<div class="card">
 		<h3>Username: <?php echo $row['username']; ?></h3>

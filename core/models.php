@@ -17,6 +17,7 @@ function insertNewUser($pdo, $username, $email, $password) {
 
 		if ($executeQuery) {
 			$_SESSION['message'] = "User successfully registered";
+			insertActivityLog($pdo, "REGISTERED new account called {$username}", "Accounts", $username);
 			return true;
 		} else {
 			$_SESSION['message'] = "An error occured from the query";
@@ -80,6 +81,7 @@ function updateAccount($pdo, $username, $email, $account_id, $updated_by) {
 	$stmt = $pdo->prepare($sql);
 	$executeQuery = $stmt->execute([$username, $email, $updated_by, $account_id]);
 	if ($executeQuery) {
+		insertActivityLog($pdo, "UPDATED account ID {$account_id}", "Accounts", $updated_by);
 		return true;
 	}
 }
@@ -95,6 +97,7 @@ function deleteAccount($pdo, $account_id) {
 		$stmt = $pdo->prepare($sql);
 		$executeQuery = $stmt->execute([$account_id]);
 		if ($executeQuery) {
+			insertActivityLog($pdo, "DELETED account ID {$account_id}", "Accounts", $_SESSION['username']);
 			return true;
 		}
 	}
@@ -109,6 +112,7 @@ function insertGuitar($pdo, $guitar_name, $guitar_type, $quantity, $price, $adde
 	$stmt = $pdo->prepare($sql);
 	$executeQuery = $stmt->execute([$guitar_name, $guitar_type, $quantity, $price, $added_by]);
 	if ($executeQuery) {
+		insertActivityLog($pdo, "INSERTED a new guitar record called {$guitar_name}", "Guitars", $added_by);
 		return true;
 	}
 }
@@ -137,6 +141,7 @@ function updateGuitar($pdo, $guitar_name, $guitar_type, $quantity, $price, $guit
 	$stmt = $pdo->prepare($sql);
 	$executeQuery = $stmt->execute([$guitar_name, $guitar_type, $quantity, $price, $updated_by, $guitar_id]);
 	if ($executeQuery) {
+		insertActivityLog($pdo, "UPDATED guitar record {$guitar_name}", "Guitars", $updated_by);
 		return true;
 	}
 }
@@ -146,6 +151,7 @@ function deleteGuitar($pdo, $guitar_id) {
 	$stmt = $pdo->prepare($sql);
 	$executeQuery = $stmt->execute([$guitar_id]);
 	if ($executeQuery) {
+		insertActivityLog($pdo, "DELETED guitar ID {$guitar_id}", "Guitars", $_SESSION['username']);
 		return true;
 	}
 }
@@ -159,6 +165,7 @@ function insertOtherProduct($pdo, $product_name, $category, $quantity, $price, $
 	$stmt = $pdo->prepare($sql);
 	$executeQuery = $stmt->execute([$product_name, $category, $quantity, $price, $added_by]);
 	if ($executeQuery) {
+		insertActivityLog($pdo, "INSERTED a new product record called {$product_name}", "Other Products", $added_by);
 		return true;
 	}
 }
@@ -187,6 +194,7 @@ function updateOtherProduct($pdo, $product_name, $category, $quantity, $price, $
 	$stmt = $pdo->prepare($sql);
 	$executeQuery = $stmt->execute([$product_name, $category, $quantity, $price, $updated_by, $product_id]);
 	if ($executeQuery) {
+		insertActivityLog($pdo, "UPDATED product record {$product_name}", "Other Products", $updated_by);
 		return true;
 	}
 }
@@ -196,6 +204,7 @@ function deleteOtherProduct($pdo, $product_id) {
 	$stmt = $pdo->prepare($sql);
 	$executeQuery = $stmt->execute([$product_id]);
 	if ($executeQuery) {
+		insertActivityLog($pdo, "DELETED product ID {$product_id}", "Other Products", $_SESSION['username']);
 		return true;
 	}
 }
@@ -209,6 +218,7 @@ function insertCartItem($pdo, $account_id, $item_name, $item_type, $quantity, $p
 	$stmt = $pdo->prepare($sql);
 	$executeQuery = $stmt->execute([$account_id, $item_name, $item_type, $quantity, $price, $added_by]);
 	if ($executeQuery) {
+		insertActivityLog($pdo, "INSERTED cart item {$item_name} for account ID {$account_id}", "Shopping Cart", $added_by);
 		return true;
 	}
 }
@@ -216,6 +226,7 @@ function insertCartItem($pdo, $account_id, $item_name, $item_type, $quantity, $p
 function getCartByAccount($pdo, $account_id) {
 	$sql = "SELECT 
 				shopping_cart.cart_id AS cart_id,
+				shopping_cart.account_id AS account_id,
 				shopping_cart.item_name AS item_name,
 				shopping_cart.item_type AS item_type,
 				shopping_cart.quantity AS quantity,
@@ -237,6 +248,7 @@ function getCartByAccount($pdo, $account_id) {
 function getCartItemByID($pdo, $cart_id) {
 	$sql = "SELECT 
 				shopping_cart.cart_id AS cart_id,
+				shopping_cart.account_id AS account_id,
 				shopping_cart.item_name AS item_name,
 				shopping_cart.item_type AS item_type,
 				shopping_cart.quantity AS quantity,
@@ -261,6 +273,7 @@ function updateCartItem($pdo, $item_name, $item_type, $quantity, $price, $cart_i
 	$stmt = $pdo->prepare($sql);
 	$executeQuery = $stmt->execute([$item_name, $item_type, $quantity, $price, $updated_by, $cart_id]);
 	if ($executeQuery) {
+		insertActivityLog($pdo, "UPDATED cart item {$item_name}", "Shopping Cart", $updated_by);
 		return true;
 	}
 }
@@ -270,7 +283,81 @@ function deleteCartItem($pdo, $cart_id) {
 	$stmt = $pdo->prepare($sql);
 	$executeQuery = $stmt->execute([$cart_id]);
 	if ($executeQuery) {
+		insertActivityLog($pdo, "DELETED cart item ID {$cart_id}", "Shopping Cart", $_SESSION['username']);
 		return true;
+	}
+}
+
+// ---- Activity Logs Functions ----
+function insertActivityLog($pdo, $operation, $location_name, $username) {
+	$sql = "INSERT INTO activity_logs (operation, location_name, username) VALUES(?,?,?)";
+	$stmt = $pdo->prepare($sql);
+	$executeQuery = $stmt->execute([$operation, $location_name, $username]);
+	if ($executeQuery) {
+		return true;
+	}
+}
+
+function getAllActivityLogs($pdo) {
+	$sql = "SELECT * FROM activity_logs ORDER BY date_added DESC";
+	$stmt = $pdo->prepare($sql);
+	$executeQuery = $stmt->execute();
+	if ($executeQuery) {
+		return $stmt->fetchAll();
+	}
+}
+
+// ---- Search Functions ----
+function searchAccounts($pdo, $searchQuery) {
+	$sql = "SELECT * FROM accounts WHERE username LIKE ? OR email LIKE ?";
+	$stmt = $pdo->prepare($sql);
+	$executeQuery = $stmt->execute(["%" . $searchQuery . "%", "%" . $searchQuery . "%"]);
+	if ($executeQuery) {
+		return $stmt->fetchAll();
+	}
+}
+
+function searchCartItems($pdo, $account_id, $searchQuery) {
+	$sql = "SELECT 
+				shopping_cart.cart_id AS cart_id,
+				shopping_cart.account_id AS account_id,
+				shopping_cart.item_name AS item_name,
+				shopping_cart.item_type AS item_type,
+				shopping_cart.quantity AS quantity,
+				shopping_cart.price AS price,
+				shopping_cart.added_by AS added_by,
+				shopping_cart.updated_by AS updated_by,
+				shopping_cart.date_added AS date_added,
+				accounts.username AS username
+			FROM shopping_cart
+			JOIN accounts ON shopping_cart.account_id = accounts.account_id
+			WHERE shopping_cart.account_id = ? AND (shopping_cart.item_name LIKE ? OR shopping_cart.item_type LIKE ?)";
+	$stmt = $pdo->prepare($sql);
+	$executeQuery = $stmt->execute([$account_id, "%" . $searchQuery . "%", "%" . $searchQuery . "%"]);
+	if ($executeQuery) {
+		return $stmt->fetchAll();
+	}
+}
+
+function searchAllCartItems($pdo, $searchQuery) {
+	$sql = "SELECT 
+				shopping_cart.cart_id AS cart_id,
+				shopping_cart.account_id AS account_id,
+				shopping_cart.item_name AS item_name,
+				shopping_cart.item_type AS item_type,
+				shopping_cart.quantity AS quantity,
+				shopping_cart.price AS price,
+				shopping_cart.added_by AS added_by,
+				shopping_cart.updated_by AS updated_by,
+				shopping_cart.date_added AS date_added,
+				accounts.username AS username
+			FROM shopping_cart
+			JOIN accounts ON shopping_cart.account_id = accounts.account_id
+			WHERE shopping_cart.item_name LIKE ? OR shopping_cart.item_type LIKE ? OR accounts.username LIKE ?";
+	$stmt = $pdo->prepare($sql);
+	$executeQuery = $stmt->execute(["%" . $searchQuery . "%", "%" . $searchQuery . "%", "%" . $searchQuery . "%"]);
+	if ($executeQuery) {
+		return $stmt->fetchAll();
 	}
 }
 
