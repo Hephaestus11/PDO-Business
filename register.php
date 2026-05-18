@@ -1,4 +1,4 @@
-<?php  
+<?php
 require_once 'core/models.php'; 
 require_once 'core/handleForms.php'; 
 ?>
@@ -31,6 +31,10 @@ require_once 'core/handleForms.php';
 			<p>
 				<label>Password</label>
 				<input type="password" name="password">
+			</p>
+			<p>
+				<label>Confirm Password</label>
+				<input type="password" name="confirm_password">
 			</p>
 			<p>
 				<input type="submit" name="registerUserBtn" value="Register">

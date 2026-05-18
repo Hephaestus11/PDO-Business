@@ -2,20 +2,35 @@
 
 require_once 'dbConfig.php';
 require_once 'models.php';
+require_once 'validate.php'; // import validate.php for sanitizeInput() and validatePassword()
 
 
 // ---- User Handlers (Register/Login/Logout) ----
 
 if (isset($_POST['registerUserBtn'])) {
-	$username = $_POST['username'];
-	$email = $_POST['email'];
-	$password = sha1($_POST['password']);
+	// sanitize inputs to prevent XSS
+	$username = sanitizeInput($_POST['username']);
+	$email = sanitizeInput($_POST['email']);
+	$password = $_POST['password'];
+	$confirm_password = $_POST['confirm_password'];
 
-	if (!empty($username) && !empty($email) && !empty($password)) {
-		$insertQuery = insertNewUser($pdo, $username, $email, $password);
-		if ($insertQuery) {
-			header("Location: ../login.php");
+	if (!empty($username) && !empty($email) && !empty($password) && !empty($confirm_password)) {
+		// check if passwords match
+		if ($password == $confirm_password) {
+			// validate password strength
+			if (validatePassword($password)) {
+				$insertQuery = insertNewUser($pdo, $username, $email, sha1($password));
+				if ($insertQuery) {
+					header("Location: ../login.php");
+				} else {
+					header("Location: ../register.php");
+				}
+			} else {
+				$_SESSION['message'] = "Password should be more than 8 characters and should contain both uppercase, lowercase, and numbers";
+				header("Location: ../register.php");
+			}
 		} else {
+			$_SESSION['message'] = "Please check if both passwords are equal!";
 			header("Location: ../register.php");
 		}
 	} else {
@@ -25,7 +40,8 @@ if (isset($_POST['registerUserBtn'])) {
 }
 
 if (isset($_POST['loginUserBtn'])) {
-	$username = $_POST['username'];
+	// sanitize username input to prevent XSS
+	$username = sanitizeInput($_POST['username']);
 	$password = sha1($_POST['password']);
 
 	if (!empty($username) && !empty($password)) {
@@ -50,7 +66,10 @@ if (isset($_GET['logoutAUser'])) {
 // ---- Account Handlers (Edit/Delete) ----
 
 if (isset($_POST['editAccountBtn'])) {
-	$query = updateAccount($pdo, $_POST['username'], $_POST['email'], $_GET['account_id'], $_SESSION['username']);
+	// sanitize inputs to prevent XSS
+	$username = sanitizeInput($_POST['username']);
+	$email = sanitizeInput($_POST['email']);
+	$query = updateAccount($pdo, $username, $email, $_GET['account_id'], $_SESSION['username']);
 	if ($query) {
 		header("Location: ../index.php");
 	} else {
@@ -71,7 +90,10 @@ if (isset($_POST['deleteAccountBtn'])) {
 // ---- Guitar Handlers ----
 
 if (isset($_POST['insertGuitarBtn'])) {
-	$query = insertGuitar($pdo, $_POST['guitarName'], $_POST['guitarType'], $_POST['quantity'], $_POST['price'], $_SESSION['username']);
+	// sanitize inputs to prevent XSS
+	$guitarName = sanitizeInput($_POST['guitarName']);
+	$guitarType = sanitizeInput($_POST['guitarType']);
+	$query = insertGuitar($pdo, $guitarName, $guitarType, $_POST['quantity'], $_POST['price'], $_SESSION['username']);
 	if ($query) {
 		header("Location: ../guitars.php");
 	} else {
@@ -80,7 +102,10 @@ if (isset($_POST['insertGuitarBtn'])) {
 }
 
 if (isset($_POST['editGuitarBtn'])) {
-	$query = updateGuitar($pdo, $_POST['guitarName'], $_POST['guitarType'], $_POST['quantity'], $_POST['price'], $_GET['guitar_id'], $_SESSION['username']);
+	// sanitize inputs to prevent XSS
+	$guitarName = sanitizeInput($_POST['guitarName']);
+	$guitarType = sanitizeInput($_POST['guitarType']);
+	$query = updateGuitar($pdo, $guitarName, $guitarType, $_POST['quantity'], $_POST['price'], $_GET['guitar_id'], $_SESSION['username']);
 	if ($query) {
 		header("Location: ../guitars.php");
 	} else {
@@ -101,7 +126,10 @@ if (isset($_POST['deleteGuitarBtn'])) {
 // ---- Other Product Handlers ----
 
 if (isset($_POST['insertOtherProductBtn'])) {
-	$query = insertOtherProduct($pdo, $_POST['productName'], $_POST['category'], $_POST['quantity'], $_POST['price'], $_SESSION['username']);
+	// sanitize inputs to prevent XSS
+	$productName = sanitizeInput($_POST['productName']);
+	$category = sanitizeInput($_POST['category']);
+	$query = insertOtherProduct($pdo, $productName, $category, $_POST['quantity'], $_POST['price'], $_SESSION['username']);
 	if ($query) {
 		header("Location: ../otherproducts.php");
 	} else {
@@ -110,7 +138,10 @@ if (isset($_POST['insertOtherProductBtn'])) {
 }
 
 if (isset($_POST['editOtherProductBtn'])) {
-	$query = updateOtherProduct($pdo, $_POST['productName'], $_POST['category'], $_POST['quantity'], $_POST['price'], $_GET['product_id'], $_SESSION['username']);
+	// sanitize inputs to prevent XSS
+	$productName = sanitizeInput($_POST['productName']);
+	$category = sanitizeInput($_POST['category']);
+	$query = updateOtherProduct($pdo, $productName, $category, $_POST['quantity'], $_POST['price'], $_GET['product_id'], $_SESSION['username']);
 	if ($query) {
 		header("Location: ../otherproducts.php");
 	} else {
@@ -131,7 +162,10 @@ if (isset($_POST['deleteOtherProductBtn'])) {
 // ---- Shopping Cart Handlers ----
 
 if (isset($_POST['insertCartItemBtn'])) {
-	$query = insertCartItem($pdo, $_GET['account_id'], $_POST['itemName'], $_POST['itemType'], $_POST['quantity'], $_POST['price'], $_SESSION['username']);
+	// sanitize inputs to prevent XSS
+	$itemName = sanitizeInput($_POST['itemName']);
+	$itemType = sanitizeInput($_POST['itemType']);
+	$query = insertCartItem($pdo, $_GET['account_id'], $itemName, $itemType, $_POST['quantity'], $_POST['price'], $_SESSION['username']);
 	if ($query) {
 		header("Location: ../viewcart.php?account_id=" . $_GET['account_id']);
 	} else {
@@ -140,7 +174,10 @@ if (isset($_POST['insertCartItemBtn'])) {
 }
 
 if (isset($_POST['editCartItemBtn'])) {
-	$query = updateCartItem($pdo, $_POST['itemName'], $_POST['itemType'], $_POST['quantity'], $_POST['price'], $_GET['cart_id'], $_SESSION['username']);
+	// sanitize inputs to prevent XSS
+	$itemName = sanitizeInput($_POST['itemName']);
+	$itemType = sanitizeInput($_POST['itemType']);
+	$query = updateCartItem($pdo, $itemName, $itemType, $_POST['quantity'], $_POST['price'], $_GET['cart_id'], $_SESSION['username']);
 	if ($query) {
 		header("Location: ../viewcart.php?account_id=" . $_GET['account_id']);
 	} else {
